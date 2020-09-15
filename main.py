@@ -1,12 +1,20 @@
-import requests
-from bs4 import BeautifulSoup
+import time
 
-query = "안녕"  # 검색어
+from bs4 import BeautifulSoup
+import requests
+
+
+query = input("Please enter query : ")  # 검색어
 index = 1  # 페이지 인덱스
 
+start = time.time()
 url = f"https://search.naver.com/search.naver?&where=news&query={query}&sm=tab_pge&sort=0&photo=0&field=0&reporter_article=&pd=0&ds=&de=&docid=&nso=so:r,p:all,a:all&mynews=0&cluster_rank=27&start={(index - 1)*10 + 1}"
-response = requests.get(url).text
 
+print(f"Waiting for response from {url}")
+response = requests.get(url).text
+print("Successfully receive response!")
+
+print("Parsing html...")
 # BeautifulSoup 라이브러리를 통해 html 파싱
 newsHTML = BeautifulSoup(response, "html.parser")
 
@@ -27,6 +35,7 @@ for tag in tags:
 
 fileName = "index.html"
 
+print("Writing index.html file...")
 # 기본 html 파일 생성
 with open(fileName, "w") as file:
     file.write("""<!DOCTYPE html>
@@ -45,10 +54,13 @@ with open(fileName, "r+") as file:
     baseHTML = BeautifulSoup(file.read(), "html.parser")
 
     for idx, tag in enumerate(tags):
-        p = baseHTML.new_tag("p", id=idx + 1)
+        p = baseHTML.new_tag("p", id=idx+1)
         p.append(tag)
         baseHTML.body.append(p)
 
     file.seek(0)
     file.write(baseHTML.prettify())
     file.truncate()
+
+spentTime = time.time() - start
+print(f"Done in {round(spentTime, 1)}s")
